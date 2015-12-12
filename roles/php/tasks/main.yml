@@ -1,0 +1,5 @@
+- name: "install php5-mysql"
+  apt: name=php5-mysql state=latest install_recommends=yes
+
+- name: "Instala PHP-FPM"
+  apt: name=php5-fpm state=latest install_recommends=yes

@@ -1,0 +1,8 @@
+- name: "Install python-mysqldb"
+  apt: name=python-mysqldb state=latest update_cache=yes install_recommends=yes
+
+- name: "Cria diretorio /opt/wordpress"
+  shell: mkdir -p /opt/wordpress
+
+- name: "corrige permissões"
+  file: path=/opt/wordpress recurse=yes owner=www-data group=www-data

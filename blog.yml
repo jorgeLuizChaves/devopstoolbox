@@ -1,75 +1,11 @@
 - hosts: all
   sudo: True
   user: vagrant
-  vars:
-    mysql_root_password: root
-    mysql_wp_user: wordpress
-    mysql_wp_password: wordpress
-    wordpress_db_name: wordpress
-  tasks:
-    - name: "Atualiza pacotes e instala nginx"
-      apt: name=nginx state=latest update_cache=yes install_recommends=yes
-    - name: "Install python-mysqldb"
-      apt: name=python-mysqldb state=latest update_cache=yes install_recommends=yes  
-
-    - name: "Instala PHP-FPM"
-      apt: name=php5-fpm state=latest install_recommends=yes
-
-    - name: "Instala MySQL"
-      apt: name=mysql-server state=latest install_recommends=yes
-
-    - name: "Cria diretorio /opt/wordpress"
-      shell: mkdir -p /opt/wordpress
-
-    - name: "Copia configuracao de blog.ngnix para /etc/nginx/sites-available/blog"
-      copy: src=blog.nginx dest=/etc/nginx/sites-available/blog
-
-    - name: "Ativa o site"
-      file: src=/etc/nginx/sites-available/blog dest=/etc/nginx/sites-enabled/blog state=link
-    
-    - name: "Apaga o site default"
-      shell: rm -f /etc/nginx/sites-enabled/default && rm -f /etc/nginx/sites-available/default
-    
-    - name: "reinicia o nginx"
-      shell: service nginx restart
-
-    #- name: "cria uma pagina de teste do php"
-    #  copy: src=test.php dest=/opt/wordpress
-    
-    - name: "install php5-mysql"
-      apt: name=php5-mysql state=latest install_recommends=yes
-    
-    - name: "Download wordpress"
-      get_url: url=https://wordpress.org/latest.tar.gz dest=/tmp/latest.tar.gz
-
-    - name: "Abre wordpress em /opt/wordpress"
-      unarchive: src=/tmp/latest.tar.gz dest=/opt copy=no
-
-    - name: "corrige permissões"
-      file: path=/opt/wordpress recurse=yes owner=www-data group=www-data
-
-    - name: "Inicia Mysql"
-      service: name=mysql state=started enabled=true
-
-    - name: "Cria .my.cnf"
-      template: src=my.cnf.j2 dest=~/.my.cnf mode=0600
-
-    - name: "Cria senha de root para root@mysql"
-      mysql_user: name=root password="{{ mysql_root_password}}"  check_implicit_admin=yes priv="*.*:ALL,GRANT" state=present host="{{ item }}"
-      with_items:
-        - "{{ ansible_hostname }}"
-        - 127.0.0.1
-        - ::1
-        - localhost
-
-    - name: "Cria wordpress db"
-      mysql_db: name=wordpress login_user=root login_password="{{ mysql_root_password }}" state=present
-    - name: "Cria usuário wordpress"
-      mysql_user: name="{{ mysql_wp_user }}" password="{{ mysql_wp_password }}" priv="{{ wordpress_db_name }}".*:ALL check_implicit_admin=yes login_user=root login_password="{{ mysql_root_password}}" host="{{ item }}" state=present
-      with_items:
-        - "{{ ansible_hostname }}"
-        - 127.0.0.1
-        - ::1
-        - localhost
-    - name: "reinicia o nginx"
-      shell: service nginx restart 
+  vars_files:
+    - vars/mysql.yml
+  roles:
+    - common
+    - mysql
+    - nginx
+    - php
+    - wordpress
